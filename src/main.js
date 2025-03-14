@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { cubeTexture } from "three/tsl";
 import { Pane } from "tweakpane";
 
 const pane = new Pane();
@@ -7,6 +8,8 @@ const pane = new Pane();
 const scene = new THREE.Scene();
 
 const textureLoader = new THREE.TextureLoader();
+const cubeTextureLoader = new THREE.CubeTextureLoader();
+cubeTextureLoader.setPath("/textures/cube/");
 
 const sunTexture = textureLoader.load("../textures/sun.jpg");
 const mercuryTexture = textureLoader.load("/textures/mercury.jpg");
@@ -26,8 +29,21 @@ const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTexture });
 
 const marsMaterial = new THREE.MeshStandardMaterial({ map: marsTexture });
 
+const background = cubeTextureLoader.load([
+  "px.png",
+  "nx.png",
+  "py.png",
+  "ny.png",
+  "pz.png",
+  "nz.png",
+]);
+scene.background = background;
+
 const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
-const sunMaterial = new THREE.MeshStandardMaterial({ map: sunTexture });
+const sunMaterial = new THREE.MeshStandardMaterial({
+  map: sunTexture,
+  color: 0xffaa00, // Orange glow
+});
 
 const sun = new THREE.Mesh(sphereGeometry, sunMaterial);
 sun.scale.setScalar(5);
@@ -104,8 +120,12 @@ const planetMeshes = planets.map((planet) => {
   return mesh;
 });
 console.log(planetMeshes);
-const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-scene.add(ambientLight);
+const pointLight = new THREE.PointLight(0xffffff, 1000, 500);
+
+scene.add(pointLight);
+
+const AmbientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(AmbientLight);
 
 const camera = new THREE.PerspectiveCamera(
   35,
@@ -137,6 +157,13 @@ const renderloop = () => {
     planet.rotation.y += planets[index].speed;
     planet.position.x = planets[index].distance * Math.cos(planet.rotation.y);
     planet.position.z = planets[index].distance * Math.sin(planet.rotation.y);
+    planet.children.forEach((moon, moonIndex) => {
+      moon.rotation.y += planets[index].moons[moonIndex].speed;
+      moon.position.x =
+        planets[index].moons[moonIndex].distance * Math.cos(moon.rotation.y);
+      moon.position.z =
+        planets[index].moons[moonIndex].distance * Math.sin(moon.rotation.y);
+    });
   });
   controls.update();
   renderer.render(scene, camera);
