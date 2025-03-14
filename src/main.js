@@ -6,24 +6,106 @@ const pane = new Pane();
 
 const scene = new THREE.Scene();
 
+const textureLoader = new THREE.TextureLoader();
+
+const sunTexture = textureLoader.load("../textures/sun.jpg");
+const mercuryTexture = textureLoader.load("/textures/mercury.jpg");
+const venusTexture = textureLoader.load("/textures/venus.jpg");
+const earthTexture = textureLoader.load("/textures/earth.jpg");
+const marsTexture = textureLoader.load("/textures/mars.jpg");
+
+const moonTexture = textureLoader.load("/textures/moon.jpg");
+
+const mercuryMaterial = new THREE.MeshStandardMaterial({ map: mercuryTexture });
+
+const venusMaterial = new THREE.MeshStandardMaterial({ map: venusTexture });
+
+const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTexture });
+
+const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTexture });
+
+const marsMaterial = new THREE.MeshStandardMaterial({ map: marsTexture });
+
 const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
-const sunMaterial = new THREE.MeshBasicMaterial({ color: "yellow" });
+const sunMaterial = new THREE.MeshStandardMaterial({ map: sunTexture });
+
 const sun = new THREE.Mesh(sphereGeometry, sunMaterial);
 sun.scale.setScalar(5);
 
-const earthMaterial = new THREE.MeshBasicMaterial({ color: "blue" });
-const earth = new THREE.Mesh(sphereGeometry, earthMaterial);
-earth.position.x = 10;
-
-const moonMaterial = new THREE.MeshBasicMaterial({ color: "gray" });
-const moon = new THREE.Mesh(sphereGeometry, moonMaterial);
-moon.position.x = 2;
-moon.scale.setScalar(0.3);
-earth.add(moon);
-
-scene.add(earth);
-
 scene.add(sun);
+
+const planets = [
+  {
+    name: "Mercury",
+    radius: 0.5,
+    distance: 10,
+    speed: 0.01,
+    material: mercuryMaterial,
+    moons: [],
+  },
+  {
+    name: "Venus",
+    radius: 0.8,
+    distance: 15,
+    speed: 0.007,
+    material: venusMaterial,
+    moons: [],
+  },
+  {
+    name: "Earth",
+    radius: 1,
+    distance: 20,
+    speed: 0.005,
+    material: earthMaterial,
+    moons: [
+      {
+        name: "Moon",
+        radius: 0.3,
+        distance: 3,
+        speed: 0.015,
+      },
+    ],
+  },
+  {
+    name: "Mars",
+    radius: 0.7,
+    distance: 25,
+    speed: 0.003,
+    material: marsMaterial,
+    moons: [
+      {
+        name: "Phobos",
+        radius: 0.1,
+        distance: 2,
+        speed: 0.02,
+      },
+      {
+        name: "Deimos",
+        radius: 0.2,
+        distance: 3,
+        speed: 0.015,
+        color: 0xffffff,
+      },
+    ],
+  },
+];
+
+const planetMeshes = planets.map((planet) => {
+  const mesh = new THREE.Mesh(sphereGeometry, planet.material);
+  mesh.scale.setScalar(planet.radius);
+  mesh.position.set(planet.distance, 0, 0);
+  scene.add(mesh);
+  planet.moons.forEach((moon) => {
+    const moonMesh = new THREE.Mesh(sphereGeometry, moonMaterial);
+    moonMesh.scale.setScalar(moon.radius);
+    moonMesh.position.set(moon.distance, 0, 0);
+    mesh.add(moonMesh);
+  });
+  return mesh;
+});
+console.log(planetMeshes);
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+scene.add(ambientLight);
 
 const camera = new THREE.PerspectiveCamera(
   35,
@@ -51,9 +133,11 @@ window.addEventListener("resize", () => {
 });
 
 const renderloop = () => {
-  earth.rotation.y += 0.01;
-  sun.rotation.y += 0.005;
-
+  planetMeshes.forEach((planet, index) => {
+    planet.rotation.y += planets[index].speed;
+    planet.position.x = planets[index].distance * Math.cos(planet.rotation.y);
+    planet.position.z = planets[index].distance * Math.sin(planet.rotation.y);
+  });
   controls.update();
   renderer.render(scene, camera);
   window.requestAnimationFrame(renderloop);
