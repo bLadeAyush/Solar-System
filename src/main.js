@@ -16,6 +16,12 @@ const mercuryTexture = textureLoader.load("/textures/mercury.jpg");
 const venusTexture = textureLoader.load("/textures/venus.jpg");
 const earthTexture = textureLoader.load("/textures/earth.jpg");
 const marsTexture = textureLoader.load("/textures/mars.jpg");
+const jupiterTexture = textureLoader.load("/textures/jupiter.jpg");
+const saturnTexture = textureLoader.load("/textures/saturn.jpg");
+const uranusTexture = textureLoader.load("/textures/uranus.jpg");
+const neptuneTexture = textureLoader.load("/textures/neptune.jpg");
+const saturnRingTexture = textureLoader.load("/textures/saturn-ring.png");
+const astroidTexture = textureLoader.load("/textures/astroid.jpg");
 
 const moonTexture = textureLoader.load("/textures/moon.jpg");
 
@@ -28,6 +34,26 @@ const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTexture });
 const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTexture });
 
 const marsMaterial = new THREE.MeshStandardMaterial({ map: marsTexture });
+
+const jupiterMaterial = new THREE.MeshStandardMaterial({
+  map: jupiterTexture,
+});
+
+const saturnMaterial = new THREE.MeshStandardMaterial({
+  map: saturnTexture,
+});
+
+const uranusMaterial = new THREE.MeshStandardMaterial({
+  map: uranusTexture,
+});
+
+const neptuneMaterial = new THREE.MeshStandardMaterial({
+  map: neptuneTexture,
+});
+
+const astroidMaterial = new THREE.MeshStandardMaterial({
+  map: astroidTexture,
+});
 
 const background = cubeTextureLoader.load([
   "px.png",
@@ -42,67 +68,91 @@ scene.background = background;
 const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
 const sunMaterial = new THREE.MeshStandardMaterial({
   map: sunTexture,
-  color: 0xffaa00, // Orange glow
 });
 
 const sun = new THREE.Mesh(sphereGeometry, sunMaterial);
-sun.scale.setScalar(5);
+sun.scale.setScalar(8);
 
 scene.add(sun);
 
 const planets = [
   {
     name: "Mercury",
-    radius: 0.5,
-    distance: 10,
-    speed: 0.01,
+    radius: 0.38,
+    distance: 13,
+    speed: 0.02,
     material: mercuryMaterial,
     moons: [],
   },
   {
     name: "Venus",
-    radius: 0.8,
-    distance: 15,
-    speed: 0.007,
+    radius: 0.95,
+    distance: 16,
+    speed: 0.015,
     material: venusMaterial,
     moons: [],
   },
   {
     name: "Earth",
     radius: 1,
-    distance: 20,
-    speed: 0.005,
+    distance: 23,
+    speed: 0.01,
     material: earthMaterial,
-    moons: [
-      {
-        name: "Moon",
-        radius: 0.3,
-        distance: 3,
-        speed: 0.015,
-      },
-    ],
+    moons: [{ name: "Moon", radius: 0.27, distance: 3.5, speed: 0.02 }],
   },
   {
     name: "Mars",
-    radius: 0.7,
-    distance: 25,
-    speed: 0.003,
+    radius: 0.53,
+    distance: 35,
+    speed: 0.008,
     material: marsMaterial,
     moons: [
-      {
-        name: "Phobos",
-        radius: 0.1,
-        distance: 2,
-        speed: 0.02,
-      },
-      {
-        name: "Deimos",
-        radius: 0.2,
-        distance: 3,
-        speed: 0.015,
-        color: 0xffffff,
-      },
+      { name: "Phobos", radius: 0.06, distance: 2.5, speed: 0.03 },
+      { name: "Deimos", radius: 0.03, distance: 4, speed: 0.025 },
     ],
+  },
+  {
+    name: "Jupiter",
+    radius: 5,
+    distance: 150,
+    speed: 0.0025,
+    material: jupiterMaterial,
+    moons: [
+      { name: "Io", radius: 0.28, distance: 2, speed: 0.022 },
+      { name: "Europa", radius: 0.25, distance: 5, speed: 0.02 },
+      { name: "Ganymede", radius: 0.41, distance: 7, speed: 0.018 },
+      { name: "Callisto", radius: 0.38, distance: 8, speed: 0.016 },
+    ],
+  },
+  {
+    name: "Saturn",
+    radius: 4.57,
+    distance: 195,
+    speed: 0.0018,
+    material: saturnMaterial,
+    moons: [
+      { name: "Titan", radius: 0.4, distance: 18, speed: 0.014 },
+      { name: "Rhea", radius: 0.12, distance: 22, speed: 0.012 },
+    ],
+  },
+  {
+    name: "Uranus",
+    radius: 2.8,
+    distance: 390,
+    speed: 0.0012,
+    material: uranusMaterial,
+    moons: [
+      { name: "Titania", radius: 0.09, distance: 10, speed: 0.01 },
+      { name: "Oberon", radius: 0.08, distance: 12, speed: 0.009 },
+    ],
+  },
+  {
+    name: "Neptune",
+    radius: 2.7,
+    distance: 510,
+    speed: 0.0008,
+    material: neptuneMaterial,
+    moons: [{ name: "Triton", radius: 0.21, distance: 16, speed: 0.007 }],
   },
 ];
 
@@ -119,19 +169,37 @@ const planetMeshes = planets.map((planet) => {
   });
   return mesh;
 });
+const asteroidGeometry = new THREE.SphereGeometry(1, 6, 6);
+const asteroidMaterial = new THREE.MeshStandardMaterial({
+  map: astroidTexture,
+});
+
+for (let i = 0; i < 500; i++) {
+  const asteroid = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
+  const distance = THREE.MathUtils.randFloat(50, 90);
+  const angle = Math.random() * Math.PI * 2;
+  asteroid.position.set(
+    distance * Math.cos(angle),
+    THREE.MathUtils.randFloat(-10, 10),
+    distance * Math.sin(angle)
+  );
+  asteroid.scale.setScalar(Math.random() * 0.5);
+  scene.add(asteroid);
+}
 console.log(planetMeshes);
-const pointLight = new THREE.PointLight(0xffffff, 1000, 500);
+const pointLight = new THREE.PointLight(0xffffff, 2000, 1000);
 
 scene.add(pointLight);
 
-const AmbientLight = new THREE.AmbientLight(0xffffff, 0.5);
+const AmbientLight = new THREE.AmbientLight(0xffffff);
+
 scene.add(AmbientLight);
 
 const camera = new THREE.PerspectiveCamera(
   35,
   window.innerWidth / window.innerHeight,
   0.1,
-  400
+  1200
 );
 camera.position.z = 100;
 camera.position.y = 5;
@@ -143,7 +211,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 scene.add(camera);
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-controls.maxDistance = 200;
+controls.maxDistance = 1000;
 controls.minDistance = 20;
 
 window.addEventListener("resize", () => {
